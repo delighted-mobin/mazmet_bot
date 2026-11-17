@@ -196,16 +196,11 @@ async def webhook(request: Request):
                                 "wmo_code": data["wmo_code"]
                             }
                         )
-                stations.sort(key=lambda x:x["rain_24"], reverse=True)
+                stations.sort(key=lambda x: (-x["rain_24"], x["name"]))
                 text = ""
-                for i, data in enumerate(stations):
-                    if i > 0 and data["rain_24"] == stations[i-1]["rain_24"]:
-                        l = [data["name"], stations[i-1]["name"]]
-                        l.sort(reverse=True)
-                        x =  f'{data["name"] if l[0] == data["name"] else l[1]}: {data["rain_24"] if l[0] == data["name"] else stations[i-1]["rain_24"]}\n'
-                        text += x
-                    else:
-                        text += f"{data["name"]}: {data["rain_24"]}\n"
+                draws = []
+
+                
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
