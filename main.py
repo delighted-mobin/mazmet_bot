@@ -162,7 +162,7 @@ async def webhook(request: Request):
                 )
 
                 await edit_message(data={
-                    "chat_id": callback.chat.id,
+                    "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
                     "text": text,
                     "parse_mode": "HTML"
