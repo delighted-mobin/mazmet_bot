@@ -152,6 +152,21 @@ async def webhook(request: Request):
         match callback.button:
             case "main":
                 pass
+            case "account":
+                text = (
+                    ""
+                    f"نام: <b>{callback.user.first_name} {callback.user.last_name}</b>\n"
+                    f"یوزنیم: {callback.user.username if callback.user.username != "" else "🟥"}\n"
+                    f"آیدی: <code>{callback.user.id}</code>\n"
+                    f"اشتراک: ❌"
+                )
+
+                await edit_message(data={
+                    "chat_id": callback.chat.id,
+                    "message_id": callback.message_id,
+                    "text": text,
+                    "parse_mode": "HTML"
+                })
             case text if "db_1" in text:
                 await db.db.table("tokens").delete().eq("secret", text[5:])     
 
@@ -188,19 +203,19 @@ async def webhook(request: Request):
                 
         return {"ok": True}
 
-
     if msg.text == "/start":
         await db.set_status(eq="user_id", eq_value=int(msg.user.id), status="main")
         await send_message_data(data={
             "chat_id": msg.chat_id,
-            "text": """
-            Create Bot
-            """,
+            "text": (
+                f"سلام <b>{msg.user.first_name}</b> به ربات هواشناسی مازندران خوش آمدید"
+                "از منوی زیر میتونید برای دریافت خدمات استفاده کنید"
+            ),
+            "parse_mode": "HTML",
             "reply_markup": {
                 "inline_keyboard": [
                         [
-                            {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
-                            {"text": "My bots", "callback_data": "mb_1", "style": "success"}
+                            {"text": "حساب کاربری", "callback_data": "account", "style": "primary"}
                         ]
                     ]
                 }
