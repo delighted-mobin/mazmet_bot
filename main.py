@@ -208,7 +208,7 @@ async def webhook(request: Request):
         await send_message_data(data={
             "chat_id": msg.chat_id,
             "text": (
-                f"سلام <b>{msg.user.first_name}</b> به ربات هواشناسی مازندران خوش آمدید"
+                f"سلام <b>{msg.user.first_name}</b> به ربات هواشناسی مازندران خوش آمدید\n"
                 "از منوی زیر میتونید برای دریافت خدمات استفاده کنید"
             ),
             "parse_mode": "HTML",
