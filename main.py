@@ -135,7 +135,6 @@ async def webhook(request: Request):
             username = user.get("username","")
         chat_type = message.get("chat",{}).get("type","")
         text = str(message.get("text", ""))
-    await send_message(msg.chat_id, "ok")
 
     status = await get_status(msg)
 
@@ -176,6 +175,36 @@ async def webhook(request: Request):
                             ]
                         ]
                     }
+                })
+            case "24_rain":
+                resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
+                resp = resp.json()
+                stations = []
+                for data in resp:
+                    if data["province"] == "Mazandaran":
+                        stations.append(
+                            {
+                                "name": data["station"],
+                                "temp": float(data["t"]),
+                                "rain_24": float(data["rrr24"]),
+                                "rain_6": float(data["rrr6"]),
+                                "temp_min": float(data["t_min"]),
+                                "temp_max": float(data["t_max"]),
+                                "up_time": data["data_time"],
+                                "lat": float(data["lat"]),
+                                "lon": float(data["lon"]),
+                                "wmo_code": data["wmo_code"]
+                            }
+                        )
+                stations.sort(key=lambda x:x["rain_24"], reverse=True)
+                text = ""
+                for data in stations:
+                    text += f"{data["name"]}: {data["rain_24"]}\n"
+
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": text
                 })
             case text if "db_1" in text:
                 await db.db.table("tokens").delete().eq("secret", text[5:])     
@@ -260,33 +289,21 @@ async def webhook(request: Request):
 
     match msg.text:
         case "آمار بارش":
-            resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
-            resp = resp.json()
-            stations = []
-            for data in resp:
-                if data["province"] == "Mazandaran":
-                    stations.append(
-                        {
-                            "name": data["station"],
-                            "temp": float(data["t"]),
-                            "rain_24": float(data["rrr24"]),
-                            "rain_6": float(data["rrr6"]),
-                            "temp_min": float(data["t_min"]),
-                            "temp_max": float(data["t_max"]),
-                            "up_time": data["data_time"],
-                            "lat": float(data["lat"]),
-                            "lon": float(data["lon"]),
-                            "wmo_code": data["wmo_code"]
-                        }
-                    )
-            stations.sort(key=lambda x:x["rain_24"], reverse=True)
-            text = ""
-            for data in stations:
-                text += f"{data["name"]}: {data["rain_24"]}\n"
-
             await send_message_data(data={
                 "chat_id": msg.chat_id,
-                "text": text
+                "text": (
+                    "گزینه مورد نظر را انتخاب کنید"
+                ),
+                "reply_markup":
+                {
+                    "inline_keyboard": 
+                    [
+                        [
+                            {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},
+                            {"text": "بارش 6 ساعته", "callback_data": "6_rain", "style": "primary"}
+                        ]
+                    ],
+                }
             })
             
     match status:
