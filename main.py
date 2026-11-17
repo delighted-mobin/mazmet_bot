@@ -256,7 +256,7 @@ async def webhook(request: Request):
 
     match msg.text:
         case "آمار بارش":
-            resp = await app.state.http.get("webapp.irimo.ir/metapi/msglist.php")
+            resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
             resp = resp.json()
             stations = []
             for data in resp:
