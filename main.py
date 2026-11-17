@@ -94,14 +94,13 @@ async def get_status(msg):
     try:
         status = await db.get_status(eq="user_id", eq_value=int(msg.user.id))
         if len(status) != 0:
+            return str(status[0].get("status","main"))
+        else:
             await db.insert(data={
                 "name": f'{msg.user.first_name} {msg.user.last_name}',
                 "username": str(msg.user.username),
                 "user_id": int(msg.user.id)
             })
-            return str(status[0].get("status","main"))
-            
-        else:
             return "main"
 
     except Exception as e:
