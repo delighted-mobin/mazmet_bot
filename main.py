@@ -17,7 +17,9 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect_db()
+    app.state.http = httpx.AsyncClient(timeout=10)
     yield
+    await app.state.http.aclose()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -27,13 +29,12 @@ async def telegram_request(method, data):
         return None
 
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(
-                f"{TELEGRAM_API}/{method}",
-                json=data
-            )
-            response.raise_for_status()
-            return response.json()
+        response = await app.state.http.post(
+            f"{TELEGRAM_API}/{method}",
+            json=data
+        )
+        response.raise_for_status()
+        return response.json()
 
     except Exception as e:
         print("Telegram API Error:", e)
