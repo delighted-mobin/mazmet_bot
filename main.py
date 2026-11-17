@@ -33,7 +33,7 @@ async def telegram_request(method, data):
             f"{TELEGRAM_API}/{method}",
             json=data
         )
-        
+
         if response.status_code != 200:
             print("Telegram Error:", response.text)
 
@@ -264,7 +264,7 @@ async def webhook(request: Request):
             resp = resp.json()
             stations = []
             for data in resp:
-                if data["province"] == "mazandaran":
+                if data["province"] == "Mazandaran":
                     stations.append(
                         {
                             "name": data["station"],
@@ -284,7 +284,6 @@ async def webhook(request: Request):
             for data in stations:
                 text += f"{data["name"]}: {data["rain_24"]}\n"
 
-            await send_message(msg.chat_id, text)
             await send_message_data(data={
                 "chat_id": msg.chat_id,
                 "text": text
