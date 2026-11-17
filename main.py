@@ -6,16 +6,20 @@ import supabase
 import os
 import db as db
 
-from supabase import create_client, Client
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 
-app = FastAPI()
-
 TOKEN = os.environ.get("BOT_TOKEN", "")
 WEBHOOK = os.environ.get("WEBHOOK", "")
-
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await db.connect_db()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 async def telegram_request(method, data):
     if not TOKEN:
@@ -23,7 +27,7 @@ async def telegram_request(method, data):
         return None
 
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
+        async with httpx.AsyncClient(timeout=10) as client:
             response = await client.post(
                 f"{TELEGRAM_API}/{method}",
                 json=data
@@ -86,11 +90,17 @@ async def setWebhook(token, secret) -> list:
     except Exception as e:
         return str(e)
 
-async def get_status(user_id):
+async def get_status(msg):
     try:
-        status = db.get_status(eq="user_id", eq_value=int(user_id))
+        status = await db.get_status(eq="user_id", eq_value=int(msg.user.id))
         if len(status) != 0:
+            await db.insert(data={
+                "name": f'{msg.user.first_name} {msg.user.last_name}',
+                "username": str(msg.user.username),
+                "user_id": int(msg.user.id)
+            })
             return str(status[0].get("status","main"))
+            
         else:
             return "main"
 
@@ -98,7 +108,7 @@ async def get_status(user_id):
         return str(e)
 
 async def fix_database(args, user_id):
-    if "token" in args: db.connect_db().table("tokens").delete().eq("creator_id", int(user_id)).eq("token","NONE").execute()
+    if "token" in args: await db.db.table("tokens").delete().eq("creator_id", int(user_id)).eq("token","NONE").execute()
 
 @app.get("/")
 async def index():
@@ -124,92 +134,86 @@ async def webhook(request: Request):
         text = str(message.get("text", ""))
     await send_message(msg.chat_id, "ok")
 
-    # status = await get_status(msg.user.id)
+    status = await get_status(msg)
 
-    # if "callback_query" in update:
-    #     class callback:
-    #         data = update.get("callback_query",{})
-    #         id = data.get("id",0)
-    #         chat_id = data.get("message",{}).get("chat",{}).get("id",0)
-    #         message_id = data.get("message",{}).get("message_id",0)
-    #         button = data.get("data",{})
-    #         class user:
-    #             user = update.get("callback_query",{}).get("from",{})
-    #             id = user.get("id", 0)
-    #             first_name = user.get("first_name", "")
-    #             last_name = user.get("last_name", "")
-    #             username = user.get("username","")
+    if "callback_query" in update:
+        class callback:
+            data = update.get("callback_query",{})
+            id = data.get("id",0)
+            chat_id = data.get("message",{}).get("chat",{}).get("id",0)
+            message_id = data.get("message",{}).get("message_id",0)
+            button = data.get("data",{})
+            class user:
+                user = update.get("callback_query",{}).get("from",{})
+                id = user.get("id", 0)
+                first_name = user.get("first_name", "")
+                last_name = user.get("last_name", "")
+                username = user.get("username","")
 
-    #     match callback.button:
-    #         case "main":
-    #             pass
-    #         case text if "db_1" in text:
-    #             db.connect_db().table("tokens").delete().eq("secret", text[5:])     
+        match callback.button:
+            case "main":
+                pass
+            case text if "db_1" in text:
+                await db.db.table("tokens").delete().eq("secret", text[5:])     
 
-    #             await edit_message(data={
-    #                 "chat_id": callback.chat_id,
-    #                 "message_id": callback.message_id,
-    #                 "text": (
-    #                     "Bot deleted successfully !"
-    #                 ),
-    #                 "parse_mode": "HTML",
-    #                 "reply_markup": {
-    #                     "inline_keyboard": None
-    #                 }
-    #             })
-    #         case "back_1":
-    #             db.set_status(eq="user_id", eq_value=int(callback.user.id), status="main")
-    #             await edit_message(data={
-    #                 "chat_id": callback.chat_id,
-    #                 "message_id": callback.message_id,
-    #                 "text": """
-    #                 Create Bot
-    #                 """,
-    #                 "reply_markup": {
-    #                     "inline_keyboard": [
-    #                             [
-    #                                 {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
-    #                                 {"text": "My bots", "callback_data": "mb_1", "style": "success"}
-    #                             ]
-    #                         ]
-    #                 }
-    #             })
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": (
+                        "Bot deleted successfully !"
+                    ),
+                    "parse_mode": "HTML",
+                    "reply_markup": {
+                        "inline_keyboard": None
+                    }
+                })
+            case "back_1":
+                await db.set_status(eq="user_id", eq_value=int(callback.user.id), status="main")
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": """
+                    Create Bot
+                    """,
+                    "reply_markup": {
+                        "inline_keyboard": [
+                                [
+                                    {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
+                                    {"text": "My bots", "callback_data": "mb_1", "style": "success"}
+                                ]
+                            ]
+                    }
+                })
 
-    #     await telegram_request("answerCallbackQuery", {"callback_query_id": callback.id})
+        await telegram_request("answerCallbackQuery", {"callback_query_id": callback.id})
                 
-    #     return {"ok": True}
+        return {"ok": True}
 
-    # if db.exist(eq="user_id", eq_value=int(msg.user.id)) == False:
-    #     db.insert(data={
-    #         "name": f'{msg.user.first_name} {msg.user.last_name}',
-    #         "username": str(msg.user.username),
-    #         "user_id": int(msg.user.id)
-    #     })
 
-    # if msg.text == "/start":
-    #     db.set_status(eq="user_id", eq_value=int(msg.user.id), status="main")
-    #     await send_message_data(data={
-    #         "chat_id": msg.chat_id,
-    #         "text": """
-    #         Create Bot
-    #         """,
-    #         "reply_markup": {
-    #             "inline_keyboard": [
-    #                     [
-    #                         {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
-    #                         {"text": "My bots", "callback_data": "mb_1", "style": "success"}
-    #                     ]
-    #                 ]
-    #             }
-    #     })
-    #     return
+    if msg.text == "/start":
+        await db.set_status(eq="user_id", eq_value=int(msg.user.id), status="main")
+        await send_message_data(data={
+            "chat_id": msg.chat_id,
+            "text": """
+            Create Bot
+            """,
+            "reply_markup": {
+                "inline_keyboard": [
+                        [
+                            {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
+                            {"text": "My bots", "callback_data": "mb_1", "style": "success"}
+                        ]
+                    ]
+                }
+        })
+        return
 
-    # match status:
-    #     case "main":
-    #         pass
-    #     case "enter_bot_name_1":
-    #        pass
-    #     case text if "enter_bot_token_1" in text:
-    #        pass
+    match status:
+        case "main":
+            pass
+        case "enter_bot_name_1":
+           pass
+        case text if "enter_bot_token_1" in text:
+           pass
 
     return {"ok": True}
