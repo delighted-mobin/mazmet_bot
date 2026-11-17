@@ -154,7 +154,6 @@ async def webhook(request: Request):
                 pass
             case "account":
                 text = (
-                    ""
                     f"نام: <b>{callback.user.first_name} {callback.user.last_name}</b>\n"
                     f"یوزنیم: {callback.user.username if callback.user.username != "" else "🟥"}\n"
                     f"آیدی: <code>{callback.user.id}</code>\n"
@@ -165,7 +164,14 @@ async def webhook(request: Request):
                     "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
                     "text": text,
-                    "parse_mode": "HTML"
+                    "parse_mode": "HTML",
+                    "reply_markup": {
+                        "inline_keyboard": [
+                            [
+                                {"text": "Back", "callback_data": "back_1", "style": "danger"}
+                            ]
+                        ]
+                    }
                 })
             case text if "db_1" in text:
                 await db.db.table("tokens").delete().eq("secret", text[5:])     
@@ -183,19 +189,32 @@ async def webhook(request: Request):
                 })
             case "back_1":
                 await db.set_status(eq="user_id", eq_value=int(callback.user.id), status="main")
-                await edit_message(data={
+                await send_message_data(data={
                     "chat_id": callback.chat_id,
-                    "message_id": callback.message_id,
-                    "text": """
-                    Create Bot
-                    """,
+                    "text": (
+                        f"سلام <b>{callback.user.first_name}</b> به ربات هواشناسی مازندران خوش آمدید\n"
+                        "از منوی زیر میتونید برای دریافت خدمات استفاده کنید"
+                    ),
+                    "parse_mode": "HTML",
                     "reply_markup": {
-                        "inline_keyboard": [
-                                [
-                                    {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
-                                    {"text": "My bots", "callback_data": "mb_1", "style": "success"}
-                                ]
+                        "inline_keyboard": 
+                        [
+                            [
+                                {"text": "حساب کاربری", "callback_data": "account", "style": "success"}
                             ]
+                        ],
+                        "keyboard":
+                        [
+                            [
+                                {"text": "آمار بارش"},
+                                {"text": "آمار دما"},
+                                {"text": "ایستگاه ها"}
+                            ],
+                            [
+                                {"text": "پیش بینی آب و هوا"}
+                            ]
+                        ],
+                        "resize_keyboard": True
                     }
                 })
 
@@ -213,15 +232,59 @@ async def webhook(request: Request):
             ),
             "parse_mode": "HTML",
             "reply_markup": {
-                "inline_keyboard": [
-                        [
-                            {"text": "حساب کاربری", "callback_data": "account", "style": "primary"}
-                        ]
+                "inline_keyboard": 
+                [
+                    [
+                        {"text": "حساب کاربری", "callback_data": "account", "style": "success"}
                     ]
-                }
+                ],
+                "keyboard":
+                [
+                    [
+                        {"text": "آمار بارش"},
+                        {"text": "آمار دما"},
+                        {"text": "ایستگاه ها"}
+                    ],
+                    [
+                        {"text": "پیش بینی آب و هوا"}
+                    ]
+                ],
+                "resize_keyboard": True
+            }
         })
         return
 
+    match msg.text:
+        case "آمار بارش":
+            resp = await app.state.http.get("webapp.irimo.ir/metapi/msglist.php").json()
+            stations = []
+            for data in resp:
+                if data["province"] == "mazandaran":
+                    stations.append(
+                        {
+                            "name": data["station"],
+                            "temp": float(data["t"]),
+                            "rain_24": float(data["rrr24"]),
+                            "rain_6": float(data["rrr6"]),
+                            "temp_min": float(data["t_min"]),
+                            "temp_max": float(data["t_max"]),
+                            "up_time": float(data["data_time"]),
+                            "lat": float(data["lat"]),
+                            "lon": float(data["lon"]),
+                            "wmo_code": data["wmo_code"]
+                        }
+                    )
+            stations.sort(key=lambda x:x["rain_24"])
+            text = ""
+            for data in stations:
+                text += f"{data["name"]}: {data["rain_24"]}\n"
+
+            await send_message_data(data={
+                "chat_id": msg.chat_id,
+                "text": text,
+                "parse_mode": "HTML"
+            })
+            
     match status:
         case "main":
             pass
