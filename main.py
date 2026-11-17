@@ -279,7 +279,7 @@ async def webhook(request: Request):
                             "wmo_code": data["wmo_code"]
                         }
                     )
-            stations.sort(key=lambda x:x["rain_24"])
+            stations.sort(key=lambda x:x["rain_24"], reverse=True)
             text = ""
             for data in stations:
                 text += f"{data["name"]}: {data["rain_24"]}\n"
