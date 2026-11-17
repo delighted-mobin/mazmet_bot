@@ -1,0 +1,240 @@
+import os
+import random
+import httpx
+import json
+import supabase
+import os
+import db as db
+
+from supabase import create_client, Client
+from fastapi import FastAPI, Request
+from fastapi.responses import PlainTextResponse
+
+app = FastAPI()
+
+TOKEN = os.environ.get("BOT_TOKEN", "")
+WEBHOOK = os.environ.get("WEBHOOK", "")
+
+TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+
+async def telegram_request(method, data):
+    if not TOKEN:
+        print("BOT_TOKEN is not set.")
+        return None
+
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.post(
+                f"{TELEGRAM_API}/{method}",
+                json=data
+            )
+            response.raise_for_status()
+            return response.json()
+
+    except Exception as e:
+        print("Telegram API Error:", e)
+        return None
+
+
+async def send_reply(chat_id, message_id, text):
+    return await telegram_request(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": text,
+            "reply_to_message_id": message_id
+        }
+    )
+
+
+async def send_message(chat_id, text):
+    return await telegram_request(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": text
+        }
+    )
+
+async def send_message_data(data):
+    return await telegram_request(
+            "sendMessage",data
+        )
+
+async def delete_message(chat_id, message_id):
+    return await telegram_request(
+        "deleteMessage",
+        {
+            "chat_id": chat_id,
+            "message_id": message_id
+        }
+    )
+
+async def edit_message(data):
+    try:
+        return await telegram_request(
+            "editMessageText",data
+        )
+    except Exception as e:
+        return str(e)
+
+async def setWebhook(token, secret) -> list:
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.post(f"https://api.telegram.org/bot{token}/setWebhook?url={WEBHOOK}")
+            return response.json()
+    except Exception as e:
+        return str(e)
+
+async def get_status(user_id):
+    try:
+        status = db.get_status(eq="user_id", eq_value=int(user_id))
+        if len(status) != 0:
+            return str(status[0].get("status","main"))
+        else:
+            return "main"
+
+    except Exception as e:
+        return str(e)
+
+async def fix_database(args, user_id):
+    if "token" in args: db.connect_db().table("tokens").delete().eq("creator_id", int(user_id)).eq("token","NONE").execute()
+
+@app.get("/")
+async def index():
+    return PlainTextResponse("ok good")
+
+
+@app.post("/")
+async def webhook(request: Request):
+
+    update = await request.json()
+    message = update.get("message", {}) or update.get("edited_message", {})
+    
+    class msg:
+        chat_id = message.get("chat",{}).get("id",0)
+        message_id = message.get("message_id",0)
+        class user:
+            user = message.get("from", {})
+            id = user.get("id", 0)
+            first_name = user.get("first_name", "")
+            last_name = user.get("last_name", "")
+            username = user.get("username","")
+        chat_type = message.get("chat",{}).get("type","")
+        text = str(message.get("text", ""))
+
+    #https://api.telegram.org/bot<TOKEN>)/setWebhook?url=<URL>/&secret_token=SEC
+    #bot_sec = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "none")
+    status = await get_status(msg.user.id)
+
+    if "callback_query" in update:
+        class callback:
+            data = update.get("callback_query",{})
+            id = data.get("id",0)
+            chat_id = data.get("message",{}).get("chat",{}).get("id",0)
+            message_id = data.get("message",{}).get("message_id",0)
+            button = data.get("data",{})
+            class user:
+                user = update.get("callback_query",{}).get("from",{})
+                id = user.get("id", 0)
+                first_name = user.get("first_name", "")
+                last_name = user.get("last_name", "")
+                username = user.get("username","")
+
+        match callback.button:
+            case "main":
+                pass
+            case text if "mb_2" in text:
+                data = db.select("tokens", eq="secret", eq_value=f"{text[5:]}")
+                inline_keyboard = [
+                    [
+                        {"text": "Delete bot", "callback_data": f"db_1_{data[0]["secret"]}", "style": "danger"}
+                    ],
+                    [
+                        {"text": "Back", "callback_data": "back_1", "style": "primary"}
+                    ]
+                ]
+
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": (
+                        f"Bot name: {data[0]["name"]}"
+                        f"Bot Token: <blockquote><code>{data[0]["token"]}</code></blockquote>"
+                    ),
+                    "parse_mode": "HTML",
+                    "reply_markup": {
+                        "inline_keyboard": inline_keyboard
+                    }
+                })
+            case text if "db_1" in text:
+                db.connect_db().table("tokens").delete().eq("secret", text[5:])     
+
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": (
+                        "Bot deleted successfully !"
+                    ),
+                    "parse_mode": "HTML",
+                    "reply_markup": {
+                        "inline_keyboard": inline_keyboard
+                    }
+                })
+            case "back_1":
+                db.set_status(eq="user_id", eq_value=int(callback.user.id), status="main")
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": """
+                    Create Bot
+                    """,
+                    "reply_markup": {
+                        "inline_keyboard": [
+                                [
+                                    {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
+                                    {"text": "My bots", "callback_data": "mb_1", "style": "success"}
+                                ]
+                            ]
+                    }
+                })
+
+        await telegram_request("answerCallbackQuery", {"callback_query_id": callback.id})
+                
+        return {"ok": True}
+
+    if db.exist(eq="user_id", eq_value=int(msg.user.id)) == False:
+        db.insert(data={
+            "name": f'{msg.user.first_name} {msg.user.last_name}',
+            "username": str(msg.user.username),
+            "user_id": int(msg.user.id)
+        })
+
+    if msg.text == "/start":
+
+        db.set_status(eq="user_id", eq_value=int(msg.user.id), status="main")
+        await send_message_data(data={
+            "chat_id": msg.chat_id,
+            "text": """
+            Create Bot
+            """,
+            "reply_markup": {
+                "inline_keyboard": [
+                        [
+                            {"text": "Create bot", "callback_data": "cb_1", "style": "primary"},
+                            {"text": "My bots", "callback_data": "mb_1", "style": "success"}
+                        ]
+                    ]
+                }
+        })
+        return
+
+    match status:
+        case "main":
+            pass
+        case "enter_bot_name_1":
+           pass
+        case text if "enter_bot_token_1" in text:
+           pass
+
+    return {"ok": True}
