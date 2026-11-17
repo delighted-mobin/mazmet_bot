@@ -110,6 +110,8 @@ async def webhook(request: Request):
 
     update = await request.json()
     message = update.get("message", {}) or update.get("edited_message", {})
+
+
     
     class msg:
         chat_id = message.get("chat",{}).get("id",0)
@@ -122,9 +124,8 @@ async def webhook(request: Request):
             username = user.get("username","")
         chat_type = message.get("chat",{}).get("type","")
         text = str(message.get("text", ""))
+    await send_message(msg.chat_id, "ok")
 
-    #https://api.telegram.org/bot<TOKEN>)/setWebhook?url=<URL>/&secret_token=SEC
-    #bot_sec = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "none")
     status = await get_status(msg.user.id)
 
     if "callback_query" in update:
@@ -144,29 +145,6 @@ async def webhook(request: Request):
         match callback.button:
             case "main":
                 pass
-            case text if "mb_2" in text:
-                data = db.select("tokens", eq="secret", eq_value=f"{text[5:]}")
-                inline_keyboard = [
-                    [
-                        {"text": "Delete bot", "callback_data": f"db_1_{data[0]["secret"]}", "style": "danger"}
-                    ],
-                    [
-                        {"text": "Back", "callback_data": "back_1", "style": "primary"}
-                    ]
-                ]
-
-                await edit_message(data={
-                    "chat_id": callback.chat_id,
-                    "message_id": callback.message_id,
-                    "text": (
-                        f"Bot name: {data[0]["name"]}"
-                        f"Bot Token: <blockquote><code>{data[0]["token"]}</code></blockquote>"
-                    ),
-                    "parse_mode": "HTML",
-                    "reply_markup": {
-                        "inline_keyboard": inline_keyboard
-                    }
-                })
             case text if "db_1" in text:
                 db.connect_db().table("tokens").delete().eq("secret", text[5:])     
 
@@ -211,7 +189,6 @@ async def webhook(request: Request):
         })
 
     if msg.text == "/start":
-
         db.set_status(eq="user_id", eq_value=int(msg.user.id), status="main")
         await send_message_data(data={
             "chat_id": msg.chat_id,
