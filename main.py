@@ -273,7 +273,7 @@ async def webhook(request: Request):
                             "rain_6": float(data["rrr6"]),
                             "temp_min": float(data["t_min"]),
                             "temp_max": float(data["t_max"]),
-                            "up_time": float(data["data_time"]),
+                            "up_time": data["data_time"],
                             "lat": float(data["lat"]),
                             "lon": float(data["lon"]),
                             "wmo_code": data["wmo_code"]
