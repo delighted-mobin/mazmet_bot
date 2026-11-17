@@ -280,10 +280,10 @@ async def webhook(request: Request):
             for data in stations:
                 text += f"{data["name"]}: {data["rain_24"]}\n"
 
+            await send_message(msg.chat_id, text)
             await send_message_data(data={
                 "chat_id": msg.chat_id,
-                "text": text,
-                "parse_mode": "HTML"
+                "text": text
             })
             
     match status:
