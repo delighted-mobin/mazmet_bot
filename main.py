@@ -33,6 +33,10 @@ async def telegram_request(method, data):
             f"{TELEGRAM_API}/{method}",
             json=data
         )
+        
+        if response.status_code != 200:
+            print("Telegram Error:", response.text)
+
         response.raise_for_status()
         return response.json()
 
