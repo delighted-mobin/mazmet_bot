@@ -197,9 +197,28 @@ async def webhook(request: Request):
                             }
                         )
                 stations.sort(key=lambda x:(-x["rain_24"], x["name"]))
+                100
+                90
+                80
+                22
+                22
+                0
+                0
+                0
+                0
                 text = ""
+                draws,y,_y = []
                 for i, data in enumerate(stations):
-                    text += f"{data["name"]}: {data["rain_24"]}\n"
+                    if i > 0 and data["rain_24"] == stations[i-1]["rain_24"]:
+                        draws.append({"name": data["name"], "rain_24": data["rain_24"]})
+                    else:
+                        text += f"{data["name"]}: {data["rain_24"]}\n"
+                for i in range(len(draws)):
+                    for x in range(len(draws)):
+                        if draws[i]["rain_24"] > draws[x]["rain_24"]:
+                            y.append({"name": draws[i]["name"], "rain_24": draws[i]["rain_24"]})
+                        elif draws[i]["rain_24"] == draws[x]["rain_24"]:
+                           _y.append({"name": draws[i]["name"], "rain_24": draws[i]["rain_24"]})
                         
 
                 await edit_message(data={
