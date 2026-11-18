@@ -114,7 +114,7 @@ async def get_status(msg):
     except Exception as e:
         return str(e)
 
-async def get_data():
+async def get_data() -> list:
     resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
     resp = resp.json()
     stations = []
@@ -222,7 +222,7 @@ async def webhook(request: Request):
                         "inline_keyboard":
                         [
                             [
-                                {"text": "آخرین آپدیت"}
+                                {"text": "زمان آپدیت", "callback_data": "up_time", "style": "primary"}
                             ],
                             [
                                 {"text": "Back", "callback_data": "back_2", "style": "danger"}
@@ -254,6 +254,18 @@ async def webhook(request: Request):
                             ]
                         ]
                     }
+                })
+            case "up_time":
+                data = await get_data()
+                text = ""
+                
+                for i, _data in enumerate(data):
+                    dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
+                    dt += timedelta(hours=3, minutes=30)
+                    text += f"<b>{_data["name"]}: {dt.hour}:{dt.minute}"
+                await telegram_request("answerCallbackQuery", 
+                {
+                    "text": text
                 })
             case "back_2":
                 await edit_message(data={
