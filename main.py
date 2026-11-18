@@ -114,6 +114,28 @@ async def get_status(msg):
     except Exception as e:
         return str(e)
 
+async def get_data():
+    resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
+    resp = resp.json()
+    stations = []
+    for data in resp:
+        if data["province"] == "Mazandaran":
+            stations.append(
+                {
+                    "name": data["station"],
+                    "rain_24": float(data["rrr6"]),
+                    "rain_6": float(data["rrr24"]),
+                    "temp": float(data["t"]),
+                    "t_min": float(data["t_min"]),
+                    "t_max": float(data["t_max"]),
+                    "lat": float(data["lat"]),                    
+                    "lon": float(data["lon"]),
+                    "data_time": data["data_time"]
+                }
+            )
+
+    return stations
+
 async def fix_database(args, user_id):
     if "token" in args: await db.db.table("tokens").delete().eq("creator_id", int(user_id)).eq("token","NONE").execute()
 
@@ -181,24 +203,14 @@ async def webhook(request: Request):
                     }
                 })
             case "24_rain":
-                resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
-                resp = resp.json()
-                stations = []
-                for data in resp:
-                    if data["province"] == "Mazandaran":
-                        stations.append(
-                            {
-                                "name": data["station"],
-                                "rain_24": float(data["rrr24"]),
-                                "up_time": data["data_time"]
-                            }
-                        )
-                stations.sort(key=lambda x:x["rain_24"], reverse=True)
+                data = await get_data()
+                data.sort(key=lambda x:x["rain_24"], reverse=True)
+
                 text = "<b>مقدار بارش 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
-                for i, data in enumerate(stations):
-                    dt = datetime.datetime.strptime(data["up_time"], "%Y-%m-%d %H:%M:%S")
+                for i, _data in enumerate(data):
+                    dt = datetime.datetime.strptime(_data["up_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-                    text += f"<b>{i+1}- {data["name"]}: ({data["rain_24"]}) میلی متر</b>\n"
+                    text += f"<b>{i+1}- {_data["name"]}: ({_data["rain_24"]}) میلی متر</b>\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -210,30 +222,23 @@ async def webhook(request: Request):
                         "inline_keyboard":
                         [
                             [
+                                {"text": "آخرین آپدیت"}
+                            ],
+                            [
                                 {"text": "Back", "callback_data": "back_2", "style": "danger"}
                             ]
                         ]
                     }
                 })
             case "6_rain":
-                resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
-                resp = resp.json()
-                stations = []
-                for data in resp:
-                    if data["province"] == "Mazandaran":
-                        stations.append(
-                            {
-                                "name": data["station"],
-                                "rain_6": float(data["rrr6"]),
-                                "up_time": data["data_time"]
-                            }
-                        )
-                stations.sort(key=lambda x:x["rain_6"], reverse=True)
+                data = await get_data()
+                data.sort(key=lambda x:x["rain_24"], reverse=True)
+
                 text = "<b>مقدار بارش 6 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
-                for i, data in enumerate(stations):
-                    dt = datetime.datetime.strptime(data["up_time"], "%Y-%m-%d %H:%M:%S")
+                for i, _data in enumerate(data):
+                    dt = datetime.datetime.strptime(_data["up_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-                    text += f"<b>{i+1}- {data["name"]}: ({data["rain_6"]}) میلی متر</b>\n"
+                    text += f"<b>{i+1}- {_data["name"]}: ({_data["rain_6"]}) میلی متر</b>\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
