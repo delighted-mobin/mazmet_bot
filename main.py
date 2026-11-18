@@ -193,12 +193,12 @@ async def webhook(request: Request):
                                 "up_time": data["data_time"]
                             }
                         )
-                stations.sort(key=lambda x:x["rain_24"])
-                text = ""
+                stations.sort(key=lambda x:x["rain_24"], reverse=True)
+                text = "<b>مقدار بارش 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, data in enumerate(stations):
                     dt = datetime.datetime.strptime(data["up_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-                    text += f"[{dt.hour}:{dt.minute}] {data["name"]}: {data["rain_24"]}\n"
+                    text += f"<b>{i+1}- {data["name"]}: ({data["rain_24"]}) میلی متر</b>\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -227,12 +227,12 @@ async def webhook(request: Request):
                                 "up_time": data["data_time"]
                             }
                         )
-                stations.sort(key=lambda x:x["rain_6"])
-                text = ""
+                stations.sort(key=lambda x:x["rain_6"], reverse=True)
+                text = "<b>مقدار بارش 6 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, data in enumerate(stations):
                     dt = datetime.datetime.strptime(data["up_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-                    text += f"[{dt.hour}:{dt.minute}] {data["name"]}: {data["rain_6"]}\n"
+                    text += f"<b>{i+1}- {data["name"]}: ({data["rain_6"]}) میلی متر</b>\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -250,7 +250,7 @@ async def webhook(request: Request):
                 })
             case "back_2":
                 await edit_message(data={
-                    "chat_id": msg.chat_id,
+                    "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
                     "text": (
                         "گزینه مورد نظر را انتخاب کنید"
