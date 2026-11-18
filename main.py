@@ -265,6 +265,7 @@ async def webhook(request: Request):
                     text += f"<b>{_data["name"]}: {dt.hour}:{dt.minute}</b>"
                 await telegram_request("answerCallbackQuery", 
                 {
+                    "callback_query_id": callback.id,
                     "text": text,
                     "parse_mode": "HTML"
                 })
