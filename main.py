@@ -208,7 +208,7 @@ async def webhook(request: Request):
 
                 text = "<b>مقدار بارش 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, _data in enumerate(data):
-                    dt = datetime.datetime.strptime(_data["up_time"], "%Y-%m-%d %H:%M:%S")
+                    dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
                     text += f"<b>{i+1}- {_data["name"]}: ({_data["rain_24"]}) میلی متر</b>\n"
 
@@ -236,7 +236,7 @@ async def webhook(request: Request):
 
                 text = "<b>مقدار بارش 6 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, _data in enumerate(data):
-                    dt = datetime.datetime.strptime(_data["up_time"], "%Y-%m-%d %H:%M:%S")
+                    dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
                     text += f"<b>{i+1}- {_data["name"]}: ({_data["rain_6"]}) میلی متر</b>\n"
 
