@@ -266,7 +266,7 @@ async def webhook(request: Request):
                 for i, _data in enumerate(data):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-                    text += f"<b>{_data["name"]}: {dt.hour}:{dt.minute}</b>\n{j}"
+                    text += f"<b>{_data["name"]}: {dt.hour}:{dt.minute}</b>\n"
                 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
