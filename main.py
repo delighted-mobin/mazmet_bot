@@ -259,7 +259,7 @@ async def webhook(request: Request):
                     }                    
                 })
             case t if "up_time" in t:
-                j = t[7:]
+                j = t[8:]
                 data = await get_data()
                 text = ""
                 
