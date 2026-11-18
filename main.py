@@ -19,7 +19,7 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect_db()
-    app.state.http = httpx.AsyncClient(timeout=10)
+    app.state.http = httpx.AsyncClient(timeout=15)
     yield
     await app.state.http.aclose()
 
