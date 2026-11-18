@@ -336,7 +336,6 @@ async def webhook(request: Request):
                 })
 
         await telegram_request("answerCallbackQuery", {"callback_query_id": callback.id})
-                
         return {"ok": True}
 
     if msg.text == "/start":
