@@ -222,7 +222,7 @@ async def webhook(request: Request):
                         "inline_keyboard":
                         [
                             [
-                                {"text": "زمان آپدیت", "callback_data": "up_time", "style": "primary"}
+                                {"text": "زمان آخرین آپدیت", "callback_data": "up_time_24", "style": "primary"}
                             ],
                             [
                                 {"text": "Back", "callback_data": "back_2", "style": "danger"}
@@ -250,12 +250,16 @@ async def webhook(request: Request):
                         "inline_keyboard":
                         [
                             [
+                                {"text": "زمان آخرین آپدیت", "callback_data": "up_time_6", "style": "primary"}
+                            ],
+                            [
                                 {"text": "Back", "callback_data": "back_2", "style": "danger"}
                             ]
                         ]
-                    }
+                    }                    
                 })
-            case "up_time":
+            case t if "up_time" in t:
+                j = t[7:]
                 data = await get_data()
                 text = ""
                 
@@ -263,11 +267,24 @@ async def webhook(request: Request):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
                     text += f"<b>{_data["name"]}: {dt.hour}:{dt.minute}</b>\n"
-                await telegram_request("answerCallbackQuery", 
-                {
-                    "callback_query_id": callback.id,
+                
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
                     "text": text,
-                    "parse_mode": "HTML"
+                    "parse_mode": "HTML",
+                    "reply_markup":
+                    {
+                        "inline_keyboard":
+                        [
+                            [
+                                {"text": "مقدار بارش", "callback_data": f"{j}_rain", "style": "primary"}
+                            ],
+                            [
+                                {"text": "Back", "callback_data": "back_2", "style": "danger"}
+                            ]
+                        ]
+                    }
                 })
             case "back_2":
                 await edit_message(data={
