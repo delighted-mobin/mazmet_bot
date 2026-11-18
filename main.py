@@ -204,6 +204,7 @@ async def webhook(request: Request):
                     "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
                     "text": text,
+                    "parse_mode": "HTML",
                     "reply_markup":
                     {
                         "inline_keyboard":
@@ -238,6 +239,7 @@ async def webhook(request: Request):
                     "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
                     "text": text,
+                    "parse_mode": "HTML",
                     "reply_markup":
                     {
                         "inline_keyboard":
