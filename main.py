@@ -5,6 +5,8 @@ import json
 import supabase
 import os
 import db as db
+import datetime 
+from datetime import timedelta
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -100,12 +102,14 @@ async def get_status(msg):
         if len(status) != 0:
             return str(status[0].get("status","main"))
         else:
-            await db.insert(data={
-                "name": f'{msg.user.first_name} {msg.user.last_name}',
-                "username": str(msg.user.username),
-                "user_id": int(msg.user.id)
-            })
-            return "main"
+            if msg.user.id != 0:
+                await db.insert(data={
+                    "name": f'{msg.user.first_name} {msg.user.last_name}',
+                    "username": str(msg.user.username),
+                    "user_id": int(msg.user.id)
+                })
+                return "main"
+        return "none"
 
     except Exception as e:
         return str(e)
@@ -185,59 +189,81 @@ async def webhook(request: Request):
                         stations.append(
                             {
                                 "name": data["station"],
-                                "temp": float(data["t"]),
                                 "rain_24": float(data["rrr24"]),
-                                "rain_6": float(data["rrr6"]),
-                                "temp_min": float(data["t_min"]),
-                                "temp_max": float(data["t_max"]),
-                                "up_time": data["data_time"],
-                                "lat": float(data["lat"]),
-                                "lon": float(data["lon"]),
-                                "wmo_code": data["wmo_code"]
+                                "up_time": data["data_time"]
                             }
                         )
-                stations.sort(key=lambda x:(-x["rain_24"], x["name"]))
-                100
-                90
-                80
-                22
-                22
-                0
-                0
-                0
-                0
+                stations.sort(key=lambda x:x["rain_24"])
                 text = ""
-                draws,y,_y = []
                 for i, data in enumerate(stations):
-                    if i > 0 and data["rain_24"] == stations[i-1]["rain_24"]:
-                        draws.append({"name": data["name"], "rain_24": data["rain_24"]})
-                    else:
-                        text += f"{data["name"]}: {data["rain_24"]}\n"
-                for i in range(len(draws)):
-                    for x in range(len(draws)):
-                        if draws[i]["rain_24"] > draws[x]["rain_24"]:
-                            y.append({"name": draws[i]["name"], "rain_24": draws[i]["rain_24"]})
-                        elif draws[i]["rain_24"] == draws[x]["rain_24"]:
-                           _y.append({"name": draws[i]["name"], "rain_24": draws[i]["rain_24"]})
-                        
+                    dt = datetime.datetime.strptime(data["up_time"], "%Y-%m-%d %H:%M:%S")
+                    dt += timedelta(hours=3, minutes=30)
+                    text += f"[{dt.hour}:{dt.minute}] {data["name"]}: {data["rain_24"]}\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
-                    "text": text
+                    "text": text,
+                    "reply_markup":
+                    {
+                        "inline_keyboard":
+                        [
+                            [
+                                {"text": "Back", "callback_data": "back_2", "style": "danger"}
+                            ]
+                        ]
+                    }
                 })
-            case text if "db_1" in text:
-                await db.db.table("tokens").delete().eq("secret", text[5:])     
+            case "6_rain":
+                resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
+                resp = resp.json()
+                stations = []
+                for data in resp:
+                    if data["province"] == "Mazandaran":
+                        stations.append(
+                            {
+                                "name": data["station"],
+                                "rain_6": float(data["rrr6"]),
+                                "up_time": data["data_time"]
+                            }
+                        )
+                stations.sort(key=lambda x:x["rain_6"])
+                text = ""
+                for i, data in enumerate(stations):
+                    dt = datetime.datetime.strptime(data["up_time"], "%Y-%m-%d %H:%M:%S")
+                    dt += timedelta(hours=3, minutes=30)
+                    text += f"[{dt.hour}:{dt.minute}] {data["name"]}: {data["rain_6"]}\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": text,
+                    "reply_markup":
+                    {
+                        "inline_keyboard":
+                        [
+                            [
+                                {"text": "Back", "callback_data": "back_2", "style": "danger"}
+                            ]
+                        ]
+                    }
+                })
+            case "back_2":
+                await edit_message(data={
+                    "chat_id": msg.chat_id,
                     "message_id": callback.message_id,
                     "text": (
-                        "Bot deleted successfully !"
+                        "گزینه مورد نظر را انتخاب کنید"
                     ),
-                    "parse_mode": "HTML",
-                    "reply_markup": {
-                        "inline_keyboard": None
+                    "reply_markup":
+                    {
+                        "inline_keyboard": 
+                        [
+                            [
+                                {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},
+                                {"text": "بارش 6 ساعته", "callback_data": "6_rain", "style": "primary"}
+                            ]
+                        ],
                     }
                 })
             case "back_1":
