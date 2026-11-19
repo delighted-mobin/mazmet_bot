@@ -131,7 +131,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (800, 225),
+        (800, 231),
         fa(date),
         small_font,
         DARK_BLUE
@@ -139,7 +139,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (800, 295),
+        (800, 301),
         fa(time),
         small_font,
         DARK_BLUE
