@@ -7,6 +7,8 @@ import os
 import db as db
 import datetime 
 from datetime import timedelta
+import rain
+from io import BytesIO
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -261,7 +263,7 @@ async def webhook(request: Request):
             case t if "up_time" in t:
                 j = t[8:]
                 data = await get_data()
-                text = ""
+                text = "<b>زمان آخرین آپدیت ایستگاه های مازندران:</b>\n\n"
                 
                 for i, _data in enumerate(data):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
@@ -286,6 +288,29 @@ async def webhook(request: Request):
                         ]
                     }
                 })
+            case "rain":
+                data = await get_data()
+                data.sort(key=lambda x:x["rain_24"], reverse=True)
+
+                stations = []
+                for d in data:
+                    stations.append({"name": d["name"], "rain": float(d["rain_24"])})
+                img = rain.do_rain(stations)
+                buffer = BytesIO()
+
+                img.save(buffer, format="PNG")
+                buffer.seek(0)
+                url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        url,
+                        data={"chat_id": callback.chat_id},
+                        files={
+                            "photo": ("report.png", buffer, "image/png")
+                        }
+                    )
+
+                
             case "back_2":
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -297,6 +322,9 @@ async def webhook(request: Request):
                     {
                         "inline_keyboard": 
                         [
+                            [
+                                {"text": "آمار کل", "callback_data": "rain", "style": "success"}   
+                            ],
                             [
                                 {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},
                                 {"text": "بارش 6 ساعته", "callback_data": "6_rain", "style": "primary"}
@@ -383,8 +411,25 @@ async def webhook(request: Request):
                     [
                         [
                             {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},
-                            {"text": "بارش 6 ساعته", "callback_data": "6_rain", "style": "primary"}
-                        ]
+                            {"text": "بارش 6 ساعته", "callback_data": "6_rain", "style": "primary"},
+                        ]   
+                    ],
+                }
+            })
+        case "آمار دما":
+            await send_message_data(data={
+                "chat_id": msg.chat_id,
+                "text": (
+                    "گزینه مورد نظر را انتخاب کنید"
+                ),
+                "reply_markup":
+                {
+                    "inline_keyboard": 
+                    [
+                        [
+                            {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
+                            {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "primary"},
+                        ]   
                     ],
                 }
             })
