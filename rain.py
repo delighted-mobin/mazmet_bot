@@ -28,7 +28,6 @@ WHITE = "#FFFFFF"
 def do_rain(stations):
     d = datetime.datetime.now()
     d += timedelta(hours=3, minutes=30)
-    d = d.strftime("%H:%M")
     date = f"{d.year}/{d.month}/{d.day}"
     time = f"{d.hour}:{d.minute}"
 
