@@ -310,7 +310,6 @@ async def webhook(request: Request):
                         }
                     )
 
-                
             case "back_2":
                 await edit_message(data={
                     "chat_id": callback.chat_id,
