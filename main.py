@@ -409,6 +409,9 @@ async def webhook(request: Request):
                     "inline_keyboard": 
                     [
                         [
+                           {"text": "آمار کل", "callback_data": "rain", "style": "success"}   
+                        ],
+                        [
                             {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},
                             {"text": "بارش 6 ساعته", "callback_data": "6_rain", "style": "primary"},
                         ]   
