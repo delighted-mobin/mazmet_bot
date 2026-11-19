@@ -193,22 +193,22 @@ def do_rain(stations):
     # تعیین اندازه فونت بر اساس تعداد ایستگاه‌ها
     if count <= 6:
 
-        station_font = load_font(21)
+        station_font = load_font(22)
         value_font = load_font(23)
 
     elif count <= 12:
 
-        station_font = load_font(17)
+        station_font = load_font(19)
         value_font = load_font(18)
 
     elif count <= 18:
 
-        station_font = load_font(14)
+        station_font = load_font(16)
         value_font = load_font(15)
 
     else:
 
-        station_font = load_font(12)
+        station_font = load_font(14)
         value_font = load_font(12)
 
 
