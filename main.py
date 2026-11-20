@@ -340,7 +340,7 @@ async def webhook(request: Request):
                         ]
                     }
                 })
-            case "minmax_temp":
+            case "maxmin_temp":
                 data = await get_data()
                 data.sort(key=lambda x:x["t_max"], reverse=True)
 
