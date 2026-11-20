@@ -117,16 +117,19 @@ async def get_status(msg):
         return str(e)
 
 async def get_data() -> list:
-    resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
-    resp = resp.json()
+    response = None
+    async with httpx.AsyncClient() as client:
+        response = await client.post("https://webapp.irimo.ir/metapi/msglist.php")
+    resp = response.json()
+    
     stations = []
     for data in resp:
         if data["province"] == "Mazandaran":
             stations.append(
                 {
                     "name": data["station"],
-                    "rain_24": float(data["rrr6"]),
-                    "rain_6": float(data["rrr24"]),
+                    "rain_24": float(data["rrr24"]),
+                    "rain_6": float(data["rrr6"]),
                     "temp": float(data["t"]),
                     "t_min": float(data["t_min"]),
                     "t_max": float(data["t_max"]),
@@ -288,6 +291,7 @@ async def webhook(request: Request):
                         ]
                     }
                 })
+                
             case "rain_chart":
                 data = await get_data()
                 data.sort(key=lambda x:x["rain_24"], reverse=True)
