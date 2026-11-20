@@ -283,10 +283,10 @@ async def webhook(request: Request):
                         "inline_keyboard":
                         [
                             [
-                                {"text": "مقدار بارش", "callback_data": f"{j}_rain", "style": "primary"}
+                                {"text": "مقدار بارش" if j == "24" or j == "6" else "مقدار دما", "callback_data": f"{j}_rain" if j == "24" or j == "6" else "now_temp", "style": "primary"}
                             ],
                             [
-                                {"text": "Back", "callback_data": "back_2", "style": "danger"}
+                                {"text": "Back", "callback_data": "back_2" if j == "24" or j == "6" else "back_3", "style": "danger"}
                             ]
                         ]
                     }
@@ -312,6 +312,52 @@ async def webhook(request: Request):
                             "photo": ("report.png", buffer, "image/png")
                         }
                     )
+            case "now_temp":
+                data = await get_data()
+                data.sort(key=lambda x:x["temp"], reverse=True)
+
+                text = "<b>مقدار دمای آخرین آپدیت ایستگاه های مازندران:</b>\n\n"
+                for i, _data in enumerate(data):
+                    dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
+                    dt += timedelta(hours=3, minutes=30)
+                    text += f"<b>{i+1}- {_data["name"]}: ({_data["temp"]}) سانتی گراد</b>\n"
+
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                    "reply_markup":
+                    {
+                        "inline_keyboard":
+                        [
+                            [
+                                {"text": "زمان آخرین آپدیت", "callback_data": "up_time_0", "style": "primary"}
+                            ],
+                            [
+                                {"text": "Back", "callback_data": "back_3", "style": "danger"}
+                            ]
+                        ]
+                    }
+                })
+            case "back_3":
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": (
+                        "گزینه مورد نظر را انتخاب کنید"
+                    ),
+                    "reply_markup":
+                    {
+                        "inline_keyboard": 
+                        [
+                            [
+                                {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
+                                {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "primary"},
+                            ]   
+                        ]
+                    }
+                })
             case "back_2":
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -325,6 +371,9 @@ async def webhook(request: Request):
                         [
                             [
                                 {"text": "آمار کل", "callback_data": "rain", "style": "success"}   
+                            ],
+                            [
+                                {"text": "نمودار مقایسه بارش", "callback_data": "rain_chart", "style": "success"}   
                             ],
                             [
                                 {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},
@@ -427,22 +476,22 @@ async def webhook(request: Request):
                 }
             })
         case "آمار دما":
-            # await send_message_data(data={
-            #     "chat_id": msg.chat_id,
-            #     "text": (
-            #         "گزینه مورد نظر را انتخاب کنید"
-            #     ),
-            #     "reply_markup":
-            #     {
-            #         "inline_keyboard": 
-            #         [
-            #             [
-            #                 {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
-            #                 {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "primary"},
-            #             ]   
-            #         ],
-            #     }
-            # })
+            await send_message_data(data={
+                "chat_id": msg.chat_id,
+                "text": (
+                    "گزینه مورد نظر را انتخاب کنید"
+                ),
+                "reply_markup":
+                {
+                    "inline_keyboard": 
+                    [
+                        [
+                            {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
+                            {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "primary"},
+                        ]   
+                    ]
+                }
+            })
             pass
             
     match status:
