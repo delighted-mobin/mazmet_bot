@@ -349,7 +349,7 @@ async def webhook(request: Request):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
                     #41
-                    t = 41 - len(f"{i+1}- {_data["name"]}: ({_data["t_max"]})🔺 ({_data["t_min"]})🔹")
+                    t = 50 - len(f"{i+1}- {_data["name"]}: ({_data["t_max"]})🔺 ({_data["t_min"]})🔹")
                     space = ""
                     for x in range(t):
                         space += " "
