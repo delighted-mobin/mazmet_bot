@@ -128,8 +128,8 @@ async def get_data() -> list:
             stations.append(
                 {
                     "name": data["station"],
-                    "rain_24": float(data["rrr6"]),
-                    "rain_6": float(data["rrr24"]),
+                    "rain_24": float(data["rrr24"]),
+                    "rain_6": float(data["rrr6"]),
                     "temp": float(data["t"]),
                     "t_min": float(data["t_min"]),
                     "t_max": float(data["t_max"]),
