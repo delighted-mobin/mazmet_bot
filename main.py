@@ -117,8 +117,10 @@ async def get_status(msg):
         return str(e)
 
 async def get_data() -> list:
-    resp = httpx.AsyncClient().get("https://webapp.irimo.ir/metapi/msglist.php")
-    resp = resp.json()
+    response = None
+    async with httpx.AsyncClient() as client:
+        response = await client.post("https://webapp.irimo.ir/metapi/msglist.php")
+    resp = response.json()
     
     stations = []
     for data in resp:
