@@ -357,8 +357,8 @@ async def webhook(request: Request):
                     text += f"<b>{i+1}- {_data["name"]}: {space}({_data["t_max"]})🔺 ({_data["t_min"]})🔹</b>\n"
                 
                 max = [data[0]["name"],data[0]["t_max"]]
-                data.sort(key=lambda x:x["t_min"], reverse=True)
-                min = [data[-1]["name"],data[-1]["t_min"]]
+                data.sort(key=lambda x:x["t_min"])
+                min = [data[0]["name"],data[0]["t_min"]]
                 text += f"\n\n<b>حداکثر دما: {max[0]} - {max[1]}</b>\n<b>حداقل دما: {min[0]} - {min[1]}</b>\n"
                 await edit_message(data={
                     "chat_id": callback.chat_id,
