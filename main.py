@@ -449,7 +449,7 @@ async def webhook(request: Request):
         })
         return
 
-    if "/start" and "آمار بارش" and "آمار دما" not in msg.text and len(msg.text) != 0:
+    if ("/start","آمار بارش","آمار دما") not in msg.text and len(msg.text) != 0:
         await send_message(msg.chat_id, "ربات درحال تکمیل و توسعه است.\nدرحال حاضر فقط آمار بارش و دما در دسترس میباشد.")
 
     match msg.text:
