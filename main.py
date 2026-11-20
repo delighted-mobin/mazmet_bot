@@ -117,8 +117,9 @@ async def get_status(msg):
         return str(e)
 
 async def get_data() -> list:
-    resp = await app.state.http.get("https://webapp.irimo.ir/metapi/msglist.php")
+    resp = httpx.AsyncClient().get("https://webapp.irimo.ir/metapi/msglist.php")
     resp = resp.json()
+    
     stations = []
     for data in resp:
         if data["province"] == "Mazandaran":
