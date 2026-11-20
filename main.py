@@ -370,9 +370,9 @@ async def webhook(request: Request):
                     {
                         "inline_keyboard": 
                         [
-                            [
-                                {"text": "آمار کل", "callback_data": "rain", "style": "success"}   
-                            ],
+                            # [
+                            #     {"text": "آمار کل", "callback_data": "rain", "style": "success"}   
+                            # ],
                             [
                                 {"text": "نمودار مقایسه بارش", "callback_data": "rain_chart", "style": "success"}   
                             ],
@@ -449,8 +449,8 @@ async def webhook(request: Request):
         })
         return
 
-    if "/start" and "آمار بارش" not in msg.text and len(msg.text) != 0:
-        await send_message(msg.chat_id, "ربات درحال تکمیل و توسعه است.\nدرحال حاضر فقط آمار بارش در دسترس میباشد.")
+    if "/start" and "آمار بارش" and "آمار دما" not in msg.text and len(msg.text) != 0:
+        await send_message(msg.chat_id, "ربات درحال تکمیل و توسعه است.\nدرحال حاضر فقط آمار بارش و دما در دسترس میباشد.")
 
     match msg.text:
         case "آمار بارش":
@@ -463,9 +463,9 @@ async def webhook(request: Request):
                 {
                     "inline_keyboard": 
                     [
-                        [
-                           {"text": "آمار کل", "callback_data": "rain_stats", "style": "success"}   
-                        ],
+                        # [
+                        #    {"text": "آمار کل", "callback_data": "rain_stats", "style": "success"}   
+                        # ],
                         [
                            {"text": "نمودار مقایسه بارش", "callback_data": "rain_chart", "style": "success"}   
                         ],
