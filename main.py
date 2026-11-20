@@ -343,11 +343,10 @@ async def webhook(request: Request):
             case "maxmin_temp":
                 data = await get_data()
                 data.sort(key=lambda x:(x["t_max"], x["t_min"]), reverse=True)
-
+                dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
+                dt += timedelta(hours=3, minutes=30)
                 text = "<b>حداقل و حداکثر دمای 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, _data in enumerate(data):
-                    dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
-                    dt += timedelta(hours=3, minutes=30)
                     if _data["name"] == "ساری-فرودگاه دشت ناز":
                         _data["name"] = "فرودگاه دشت ناز"
 
@@ -359,8 +358,8 @@ async def webhook(request: Request):
                 
                 max = [data[0]["name"],data[0]["t_max"]]
                 data.sort(key=lambda x:x["t_min"], reverse=True)
-                min = [data[0]["name"],data[0]["t_min"]]
-                text += f"\n\n<b>حداکثر دما: {max[0]} - {max[1]}</b>\n<b>حداقل دما: {min[0]} - {min[1]}</b>\n"
+                min = [data[-1]["name"],data[-1]["t_min"]]
+                text += f"\n\n<b>حداکثر دما: {max[0]} - {max[1]}</b>\n<b>حداقل دما: {min[0]} - {min[1]}</b>\n{dt}"
                 await edit_message(data={
                     "chat_id": callback.chat_id,
                     "message_id": callback.message_id,
