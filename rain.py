@@ -222,8 +222,8 @@ def do_rain(stations):
 
     else:
 
-        station_font = load_font(12)
-        value_font = load_font(12)
+        station_font = load_font(15)
+        value_font = load_font(14)
 
 
     # ==================================================
