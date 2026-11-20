@@ -288,7 +288,7 @@ async def webhook(request: Request):
                         ]
                     }
                 })
-            case "rain":
+            case "rain_chart":
                 data = await get_data()
                 data.sort(key=lambda x:x["rain_24"], reverse=True)
 
@@ -304,12 +304,11 @@ async def webhook(request: Request):
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         url,
-                        data={"chat_id": callback.chat_id},
+                        data={"chat_id": callback.chat_id, "reply_to_message_id": callback.message_id},
                         files={
                             "photo": ("report.png", buffer, "image/png")
                         }
                     )
-
             case "back_2":
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -412,7 +411,10 @@ async def webhook(request: Request):
                     "inline_keyboard": 
                     [
                         [
-                           {"text": "آمار کل", "callback_data": "rain", "style": "success"}   
+                           {"text": "آمار کل", "callback_data": "rain_stats", "style": "success"}   
+                        ],
+                        [
+                           {"text": "نمودار مقایسه بارش", "callback_data": "rain_chart", "style": "success"}   
                         ],
                         [
                             {"text": "بارش 24 ساعته", "callback_data": "24_rain", "style": "success"},

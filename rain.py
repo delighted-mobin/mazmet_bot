@@ -4,8 +4,7 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 import arabic_reshaper
 from bidi.algorithm import get_display
-import datetime
-from datetime import timedelta
+import jdatetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -26,14 +25,23 @@ WHITE = "#FFFFFF"
 # 2. اطلاعات گزارش
 # ==================================================
 def do_rain(stations):
-    d = datetime.datetime.now()
-    d += timedelta(hours=3, minutes=30)
-    d = d.strftime("%H:%M")
-    date = f"{d.year}/{d.month}/{d.day}"
-    time = f"{d.hour}:{d.minute}"
+    # ==================================================
+    # 1. تنظیمات اولیه
+    # ==================================================
 
-    # این لیست را می‌توانی مستقیماً از دیتابیس یا API پر کنی.
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+    TEMPLATE_PATH = os.path.join(BASE_DIR, "template.png")
+    FONT_PATH = os.path.join(BASE_DIR, "Vazirmatn-RD-Bold.ttf")
+    OUTPUT_PATH = os.path.join(BASE_DIR, "report.png")
+
+    MAX_STATIONS = 25
+
+    # رنگ‌ها
+    BLUE = "#0876B9"
+    DARK_BLUE = "#123653"
+    GRID_COLOR = "#B7C9DA"
+    WHITE = "#FFFFFF"
 
     # ==================================================
     # 3. بررسی داده‌ها
@@ -130,9 +138,14 @@ def do_rain(stations):
     # 6. درج تاریخ و ساعت
     # ==================================================
 
+    now = jdatetime.datetime.now()
+
+    date = fa_num(now.strftime("%Y/%m/%d"))
+    time = fa_num(now.strftime("%H:%M"))
+
     draw_centered_text(
         draw,
-        (800, 231),
+        (790, 231),
         fa(date),
         small_font,
         DARK_BLUE
@@ -194,22 +207,22 @@ def do_rain(stations):
     # تعیین اندازه فونت بر اساس تعداد ایستگاه‌ها
     if count <= 6:
 
-        station_font = load_font(22)
+        station_font = load_font(21)
         value_font = load_font(23)
 
     elif count <= 12:
 
-        station_font = load_font(19)
+        station_font = load_font(17)
         value_font = load_font(18)
 
     elif count <= 18:
 
-        station_font = load_font(16)
+        station_font = load_font(14)
         value_font = load_font(15)
 
     else:
 
-        station_font = load_font(14)
+        station_font = load_font(12)
         value_font = load_font(12)
 
 
@@ -373,7 +386,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (200, 1110),
+        (200, 1135),
         fa(driest["name"]),
         load_font(27),
         DARK_BLUE
@@ -381,7 +394,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (200, 1145),
+        (200, 1170),
         f"{fa_num(driest['rain'])} mm",
         small_font,
         BLUE
@@ -394,7 +407,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (555, 1110),
+        (555, 1135),
         fa(wettest["name"]),
         load_font(27),
         DARK_BLUE
@@ -402,7 +415,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (555, 1145),
+        (555, 1170),
         f"{fa_num(wettest['rain'])} mm",
         small_font,
         BLUE
@@ -415,7 +428,7 @@ def do_rain(stations):
 
     draw_centered_text(
         draw,
-        (900, 1120),
+        (925, 1145),
         f"{fa_num(f'{total_rain:.1f}')} mm",
         title_font,
         BLUE
@@ -432,3 +445,4 @@ def do_rain(stations):
         format="PNG",
         optimize=True
     )
+
