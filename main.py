@@ -340,7 +340,34 @@ async def webhook(request: Request):
                         ]
                     }
                 })
+            case "minmax_temp":
+                data = await get_data()
+                data.sort(key=lambda x:x["t_max"], reverse=True)
 
+                text = "<b>مقدار حداقل و حداکثر دمای 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
+                for i, _data in enumerate(data):
+                    dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
+                    dt += timedelta(hours=3, minutes=30)
+                    text += f"<b>{i+1}- {_data["name"]}: 🔺({_data["t_max"]}) 🔹({_data["t_min"]}) </b>\n"
+
+                await edit_message(data={
+                    "chat_id": callback.chat_id,
+                    "message_id": callback.message_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                    "reply_markup":
+                    {
+                        "inline_keyboard":
+                        [
+                            [
+                                {"text": "زمان آخرین آپدیت", "callback_data": "up_time_0", "style": "primary"}
+                            ],
+                            [
+                                {"text": "Back", "callback_data": "back_3", "style": "danger"}
+                            ]
+                        ]
+                    }
+                })
             case "back_3":
                 await edit_message(data={
                     "chat_id": callback.chat_id,
