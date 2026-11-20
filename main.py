@@ -351,7 +351,7 @@ async def webhook(request: Request):
                     if _data["name"] == "ساری-فرودگاه دشت ناز":
                         _data["name"] = "فرودگاه دشت ناز"
 
-                    t = 20 - len(f"{i+1}- {_data["name"]}: ")
+                    t = 16 - len(f"{i+1}- {_data["name"]}: ")
                     space = ""
                     for x in range(t):
                         space += " "
