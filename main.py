@@ -343,8 +343,7 @@ async def webhook(request: Request):
             case "maxmin_temp":
                 data = await get_data()
                 data.sort(key=lambda x:(x["t_max"], x["t_min"]), reverse=True)
-                dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
-                dt += timedelta(hours=3, minutes=30)
+
                 text = "<b>حداقل و حداکثر دمای 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, _data in enumerate(data):
                     if _data["name"] == "ساری-فرودگاه دشت ناز":
