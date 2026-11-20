@@ -340,7 +340,7 @@ async def webhook(request: Request):
                         ]
                     }
                 })
-                
+
             case "back_3":
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -354,7 +354,7 @@ async def webhook(request: Request):
                         [
                             [
                                 {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
-                                {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "primary"},
+                                {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "success"},
                             ]   
                         ]
                     }
@@ -488,7 +488,7 @@ async def webhook(request: Request):
                     [
                         [
                             {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
-                            {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "primary"},
+                            {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "success"},
                         ]   
                     ]
                 }
