@@ -504,4 +504,3 @@ async def webhook(request: Request):
            pass
 
     return {"ok": True}
-
