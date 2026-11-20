@@ -25,16 +25,9 @@ WHITE = "#FFFFFF"
 # 2. اطلاعات گزارش
 # ==================================================
 def do_rain(stations):
-<<<<<<< HEAD
     # ==================================================
     # 1. تنظیمات اولیه
     # ==================================================
-=======
-    d = datetime.datetime.now()
-    d += timedelta(hours=3, minutes=30)
-    date = f"{d.year}/{d.month}/{d.day}"
-    time = f"{d.hour}:{d.minute}"
->>>>>>> e2b4a984ebb730eff43fb919cb095846d9e6527f
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
