@@ -322,7 +322,7 @@ def do_rain(stations):
         )
 
         # نام ایستگاه
-        station_name = fa(station["name"])
+        station_name = fa(station["name"] if station["name"] != "ساری-فرودگاه دشت ناز" else "فرودگاه دشت ناز")
 
         if count <= 6:
 
