@@ -342,7 +342,7 @@ async def webhook(request: Request):
                 })
             case "maxmin_temp":
                 data = await get_data()
-                data.sort(key=lambda x:x["t_max"], reverse=True)
+                data.sort(key=lambda x:(x["t_max"], t["t_min"]), reverse=True)
 
                 text = "<b>حداقل و حداکثر دمای 24 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, _data in enumerate(data):
