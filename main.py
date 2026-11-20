@@ -291,7 +291,6 @@ async def webhook(request: Request):
                         ]
                     }
                 })
-                
             case "rain_chart":
                 data = await get_data()
                 data.sort(key=lambda x:x["rain_24"], reverse=True)
