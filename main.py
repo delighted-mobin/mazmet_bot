@@ -348,8 +348,11 @@ async def webhook(request: Request):
                 for i, _data in enumerate(data):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-
-                    text += f"<b>{i+1}- {_data["name"]}: ({_data["t_max"]})🔺 ({_data["t_min"]})🔹</b>\n"
+                    t = 26 - len(f"{i+1}- {_data["name"]}: ")
+                    space = ""
+                    for x in range(t):
+                        space += " "
+                    text += f"<b>{i+1}- {_data["name"]}: {space}({_data["t_max"]})🔺 ({_data["t_min"]})🔹</b>\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
