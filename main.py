@@ -348,6 +348,9 @@ async def webhook(request: Request):
                 for i, _data in enumerate(data):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
+                    if _data["name"] == "ساری-فرودگاه دشت ناز":
+                        _data["name"] = "فرودگاه دشت ناز"
+
                     t = 26 - len(f"{i+1}- {_data["name"]}: ")
                     space = ""
                     for x in range(t):
