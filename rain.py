@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import arabic_reshaper
 from bidi.algorithm import get_display
 import jdatetime
+from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -139,6 +140,7 @@ def do_rain(stations):
     # ==================================================
 
     now = jdatetime.datetime.now()
+    now += timedelta(hours=3, minutes=30)
 
     date = fa_num(now.strftime("%Y/%m/%d"))
     time = fa_num(now.strftime("%H:%M"))
