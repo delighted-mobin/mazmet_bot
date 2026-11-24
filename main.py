@@ -320,7 +320,7 @@ async def webhook(request: Request):
                 for i, _data in enumerate(data):
                     dt = datetime.datetime.strptime(_data["data_time"], "%Y-%m-%d %H:%M:%S")
                     dt += timedelta(hours=3, minutes=30)
-                    text += f"<b>{i+1}- {_data["name"]}: ({_data["temp"]}) سانتی گراد</b>\n"
+                    text += f"<b>{i+1}- {_data["name"]}: ({_data["temp"]}°)</b>\n"
 
                 await edit_message(data={
                     "chat_id": callback.chat_id,
@@ -353,7 +353,7 @@ async def webhook(request: Request):
                     space = ""
                     for x in range(t):
                         space += " "
-                    text += f"<b>{i+1}- {_data["name"]}: {space}({_data["t_max"]})🔺 ({_data["t_min"]})🔹</b>\n"
+                    text += f"<b>{i+1}- {_data["name"]}: {space}({_data["t_max"]}°)🔺 ({_data["t_min"]}°)🔹</b>\n"
                 
                 max = [data[0]["name"],data[0]["t_max"]]
                 data.sort(key=lambda x:x["t_min"])
@@ -390,7 +390,7 @@ async def webhook(request: Request):
                         [
                             [
                                 {"text": "دمای فعلی", "callback_data": "now_temp", "style": "success"},
-                                {"text": "دمای کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "success"},
+                                {"text": "کمینه و بیشینه", "callback_data": "maxmin_temp", "style": "success"},
                             ]   
                         ]
                     }
