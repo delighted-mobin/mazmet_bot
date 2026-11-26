@@ -237,7 +237,7 @@ async def webhook(request: Request):
                 })
             case "6_rain":
                 data = await get_data()
-                data.sort(key=lambda x:x["rain_24"], reverse=True)
+                data.sort(key=lambda x:x["rain_6"], reverse=True)
 
                 text = "<b>مقدار بارش 6 ساعت گذشته ایستگاه های مازندران:</b>\n\n"
                 for i, _data in enumerate(data):
